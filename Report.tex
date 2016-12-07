@@ -1,0 +1,60 @@
+ \documentclass[10pt,a4paper,headinclude=true,twoside]{report}
+\usepackage[latin1]{inputenc}
+\usepackage[a4paper]{geometry}
+\usepackage{a4wide}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{pdflscape} % dlia landscape orientation 
+\hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
+\usepackage{float}
+\usepackage{setspace}
+\usepackage{titlesec}
+\titleformat{\chapter}
+  {\Large\bfseries} % format
+  {}                % label
+  {0pt}             % sep
+  {\huge}           % before-code
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+\fancyhead[LE,RO]{\slshape  \rightmark} %should be used with "twoside" in documentcalss. Delat headeri kak v knigah: vneshnije storoni sovpadajut drug s drugom. 
+\fancyhead[LO,RE]{\slshape  \leftmark}
+\fancyfoot[C]{\thepage}
+
+%\lhead{Edgar Ivanov}
+%\rhead{Industrial Year Report}
+%\cfoot{\thepage}
+
+%\pagestyle{myheadings}
+
+%\usepackage{biblatex}
+
+\renewcommand{\familydefault}{\sfdefault}
+
+\begin{document}
+\onehalfspacing
+\title{Report}
+\author{Edgar Ivanov\\ ivanovedgar@gmail.com}
+\date{\today}
+
+\maketitle
+
+\newpage
+\thispagestyle{empty}
+\mbox{}
+
+\tableofcontents
+
+\chapter{Organization}
+
+\section{Information Services}
+
+
+\bibliographystyle{ieeetr}
+\bibliography{bibl}
+
+\end{document}
