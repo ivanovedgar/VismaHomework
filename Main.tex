@@ -14,22 +14,17 @@
 \usepackage[colorinlistoftodos]{todonotes}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
 
-\title{Your Paper}
+\title{Visma Homework Assignemnt for the Published Applications Solution Administrator Position}
 \author{Edgar Ivanov}
 
 \begin{document}
 	\maketitle
 	
-	%%\begin{abstract}
-	
-	%%\end{abstract}
-	
 	\section{Introduction}
+	The task is to design infrastructure solution for the "Visma Services Norway". "Visma Services Norway" has approximately 1200 users connecting to the virtualized desktop environment and running its entire application portfolio in it. This document presents infrastructure solution and outlines the main design considerations.
 	
-	The task is to design infrastructure solution for the "Visma Services Norway" company. "Visma Services Norway" has approximately 1200 users connecting to the virtualized desktop environment and running its entire application portfolio in it for the day to day work. This document presents infrastructure solution and outlines main design considerations in mind with the redundancy.
-	
-	\section{Overall plan}
-	Discuss the company and its needs, present drawing. can be seen on the figure \ref{fig:Diagram}
+	\section{Infrastructure Design}
+	Figure \ref{fig:Diagram} presents the overall infrastructure design, followed by the design consideration discussion for each FMA layer.
 	
 	\begin{figure}
 		\centering
@@ -38,49 +33,37 @@
 	\end{figure}
 	
 	\subsection{User Layer}
-	Endpoint devices require Citrix Receiver to be present and correctly configured in order to access virtual desktop environment. Receiver can be deployed manually by the end users and auto configured using the provisioning file, initial deployment can also be done using GPOs or with help of any other third party solutions. Visma Services Norway (the client) is responsible for the endpoint selection and management. Client should have redundant internet connection to eliminate single point of failure in connecting to the solution.
+	User devices will require Citrix Receiver to be present and correctly configured in order to successfully access virtual desktop environment. Receiver can be deployed manually by the end users and auto configured with help of the auto provisioning file, initial deployment can also be done using GPOs or with help of any other third party solutions. Visma Services Norway (the client) is responsible for the endpoint device selection and management. The client should also have redundant internet line in order to eliminate connection issues.
 	\subsection{Access Layer}
+	To ensure high availability multi-active data centre deployment should be used. Two VPX based NetScaler Gateways configured as HA pair should be deployed in the DMZ zone of each delivery site to isolate internal network from the outside world. All users will be treated as external users thus their connections will need to go through the NetScaler Gateway.
 	
-	To ensure high availability multi-active data centre deployment will be used. A pair of the VPX based NetScaler Gateways will be deployed in the DMZ zone of each delivery site. Both datacentres will have two StoreFron servers, one accepting all connections and the second one in the stand by mode for the redundancy.    
-	
+	Both data centres should have two StoreFront servers, first one accepting all connections and the second one in the stand by mode for the redundancy.    
 	\subsection{Resource Layer}
+	From the scenario we know that users will be connecting to the virtual desktops where they will be able launch applications, thus we will be using pooled desktop VDI. No specification is given whether users will be able to make any changes to their desktop, so we will assume that all desktops will be reset to the clean after use. To facilitate application configuration persistence user profiles will be stored on the network share and load when user logs in.
 	
-	VDI images should be stored on the networked storage instead of the local to eliminate image loss in case of the local disk failure. To ensure fast application provisioning all applications will be pre-installed on the base image. Non standard applications may be streamed to the user Virtual Desktops in cases where there are special requirements. For the users who need Desktop customization profiles may be saved on the DFS network share, otherwise all Desktops will be reset to the clean state.
-	
+	To provide resiliency at this layer VDI images should be stored on the networked storage, instead of the local, to eliminate image loss in case of the local disk failure. To ensure fast application provisioning all standard applications like MS Office, VB, VDC, Internet Browser should be pre-installed on the base image. Non standard applications may be streamed to the user Virtual Desktop in case there are special requirements.
 	\subsection{Control Layer}
+	All Windows components needed for the successfully application delivery, should be configured with the redundancies as well. There should be two domain controllers in each delivery site, two DNS servers as well as DHCP servers configured as a cluster.
 	
-	All Windows components, on which Ctrix relies for the successfully application delivery, will be configured with the redundancies. There will be two Domain Controllers in each delivery site, two DNS servers as well as DHCP server configured as a cluster.
+	Delivery controller redundancy could be achieved by having at least two of them on the different physical hosts. Each Virtual Delivery Agent will be configured with the list of the available Delivery Controllers, thus providing redundancy in case of the Delivery Controller failure.
 	
-	Delivery controller redundancy will be achieved by having at least two of them on the different physical hosts. Each Virtual Delivery Agent will be configured with the list of the available Delivery Controllers, thus providing redundancy in case of the Delivery Controller failure. \todo{Best practice would be to utilize NetSalers HA ability}
+	Different techniques may be employed to achieve site database redundancy, they include SQL mirroring, AlwaysOn Failover Clustering or AlwaysOn Availability Group. Having VMs running off the shared storage would allow to use host clustering technology. Virtual machine hosting SQL database and running in a such cluster would be automatically restarted on the different physical host in case of the original host failure. Further protection could be achieved by the use of the replication technology, where the copy of the machine is stored on the different storage, this would allow quick VM restoration in to the consistent state as well.
 	
-	Different techniques may be employed to achieve site database redundancy such as  SQL mirroring, AlwaysOn Failover Clustering or AlwaysOn Availability Group. Having SQL database running off the shared storage in the virtual machine would allow the use of the VMWares VMotion technology, which would bring up the database on the healthy physical host sharing the same storage group. Further protection may be achieved by the use of the VSpheres replication technology with enabled quisicing, this would allow quick VM restoration in to the consistent state.
-	
-	Licensing server may be left over as the built 30-day grace period gives plenty of time for the service restoration.
-	
-	VPS high availability? No idea.         
-	
+	Licensing server may be left over as the built 30-day grace period gives plenty of time for the service restoration.	
 	\subsection{Hardware Layer}
+	As per the original task we know that the hosting company utilizes SAN which most likely will be running in some king of the RAID configuration and providing redundancy at the storage level. All other components like redundant network links, power supplies, server chassis should be taken care of by the data centre. Further hardware redundancy may be achieved with help of the VMware HA feature, which we have already discussed, it would bring up guest VMs from the failed host on the different physical host.
 	
-	As per the original task we know that the hosting company utilizes SAN which most likely will be running in some king of the RAID configuration, thus providing redundancy at the storage level. All other components like redundant network links, power supplies, server chassis are defacto standard. Further hardware redundancy may be achieved with the help of the VMware HA feature, which would bring up guest VMs on the different physical host in the case of the original host failure, the same approach as we have employed for the site database redundancy.
+	Hawing initial user numbers and their usage patterns following was identified as a hardware requirements. Across two data centres we would need a total of sixteen servers, eight at each data centre. Three servers for the control and the rest five for the Virtual Desktop VMs. Each host should have 256 GB of RAM, I want to sleeeeeeeeeeeeep, go hoooooome, just will send this to the Bear for the review, hopefully she is not too busy with here family life, muhahahaha.
 	
-	Hawing initial user numbers and their usage patterns following was identified as a hardware requirement. Citrix Project Accelerator has been used in  
 	
-	\section{Bussiness Process}
-	
+	\section {Application Design}
+	Figure \ref{fig:VismaWorkflow} presents the application work flow described in the provided scenario bla bla bla
 	\begin{figure}
 		\centering
 		\includegraphics[width=1\textwidth]{VismaWorkflow.png}
 		\caption{\label{fig:VismaWorkflow}Application Workflow}
 	\end{figure}
-	
-	\subsection{How to add Citations and a References List}
-	\href{https://www.citrix.com/blogs/2014/04/09/activeactive-gslb-for-xendesktop-a-practical-approach-part-1/}{Active/Active GSLB for XenDesktop}
-	\href{https://www.citrix.com/blogs/2012/11/24/xendesktop-high-availability-load-balancing-add-on-for-web-interface/}{XenDesktop – High Availability \& Load Balancing Add On For Web Interface}
 
-	
-	We hope you find Overleaf useful, and please let us know if you have any feedback using the help menu above --- or use the contact form at \url{https://www.overleaf.com/contact}!
-	
-	\bibliographystyle{alpha}
-	\bibliography{sample}
-	
+%	\href{https://www.citrix.com/blogs/2014/04/09/activeactive-gslb-for-xendesktop-a-practical-approach-part-1/}{Active/Active GSLB for XenDesktop}
+	%\href{https://www.citrix.com/blogs/2012/11/24/xendesktop-high-availability-load-balancing-add-on-for-web-interface/}{XenDesktop – High Availability \& Load Balancing Add On For Web Interface}
 \end{document}
